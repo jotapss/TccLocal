@@ -1,0 +1,60 @@
+# ═══════════════════════════════════════════════════════════════
+# Sentinela Agent — Git Ignore
+# ═══════════════════════════════════════════════════════════════
+
+# VARIÁVEIS DE AMBIENTE (NUNCA versionar .env real)
+.env
+.env.local
+.env.*.local
+
+# NODE MODULES
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# CERTIFICADOS E CHAVES (SEGREDO MÁXIMO)
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.cert
+*.pub
+
+# BUILD E CACHE
+dist/
+build/
+.cache/
+.eslintcache
+
+# LOGS E TEMPORÁRIOS
+logs/
+*.log
+tmp/
+temp/
+.sentinela-buffer/
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# TESTE
+coverage/
+.nyc_output/
+
+# ✓ DEBE SER VERSIONADO:
+# - .env.example
+# - .gitignore (este arquivo)
+# - Dockerfile
+# - docker-compose.yml
+# - src/
+# - package.json
+# - README.md
