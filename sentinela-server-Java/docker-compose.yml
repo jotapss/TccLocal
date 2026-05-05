@@ -1,0 +1,68 @@
+version: '3.9'
+
+networks:
+  sentinela-internal:
+    internal: true
+  sentinela-public:
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sentinela-postgres
+    environment:
+      POSTGRES_DB: sentinela
+      POSTGRES_USER: sentinela_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - sentinela-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinela_user -d sentinela"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  sentinela-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sentinela-server
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - sentinela-internal
+      - sentinela-public
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: sentinela
+      DB_USERNAME: sentinela_user
+      DB_PASSWORD: ${DB_PASSWORD:-changeme}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-900000}
+      JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS:-604800000}
+      HMAC_SECRET: ${HMAC_SECRET}
+      JASYPT_ENCRYPTOR_PASSWORD: ${JASYPT_ENCRYPTOR_PASSWORD}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin@changeme123}
+      ADMIN_RESET_PASSWORD: ${ADMIN_RESET_PASSWORD:-false}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173,http://127.0.0.1:5173}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
+      RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-100}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+    restart: unless-stopped
+    stop_grace_period: 35s
+
+volumes:
+  postgres-data:
+    driver: local
